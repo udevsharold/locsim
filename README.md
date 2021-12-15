@@ -23,6 +23,9 @@ OPTIONS:
 ## Compatibility
 This package tested to be working on iOS 14.3. Might or might not work on other iOS version.
 
+## Bonus
+This [Shortcut](https://www.dropbox.com/s/4kpjwbnbd7gwtu5/Simulates%20Location.shortcut?dl=0) allow you to pick any location on Maps.app and simulate it (requires localhost ssh and change port and password accordingly).
+
 ## License
 All source code in this repository are licensed under GPLv3, unless stated otherwise.
 

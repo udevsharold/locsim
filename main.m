@@ -377,7 +377,7 @@ int main(int argc, char *argv[], char *envp[]) {
 	}
 	
 	if (strcasecmp(argv[0], "start") == 0){
-		if (!CLLocationCoordinate2DIsValid(coor)) {fprintf(stderr, "ERROR: Invalid coordinate!\n"); return -1;}
+		if (!CLLocationCoordinate2DIsValid(coor)) {fprintf(stderr, "ERROR: Invalid coordinate!\n"); return 1;}
 		CLLocation *loc = [[CLLocation alloc] initWithCoordinate:coor altitude:alt horizontalAccuracy:ha verticalAccuracy:va timestamp:ts];
 		start_loc_sim(loc);
 		fprintf(stdout, "latitude: %f\nlongitude: %f\naltitude: %f\nhorizontal accuracy: %f\nverticalAccuracy: %f\ntimestamp: %s\n", coor.latitude, coor.longitude, alt, ha, va, [NSDateFormatter localizedStringFromDate:ts dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterFullStyle].UTF8String);

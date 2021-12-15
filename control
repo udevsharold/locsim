@@ -1,0 +1,11 @@
+Package: com.udevs.locsim
+Name: locsim
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: Simulate GPS location system-wide
+Maintainer: udevs
+Author: udevs
+Section: System
+Tag: role::hacker
+Icon: https://udevsharold.github.io/repo/depictions/com.udevs.locsim/icon/icon.png
+Depiction: https://udevsharold.github.io/repo/depictions/?p=com.udevs.locsim

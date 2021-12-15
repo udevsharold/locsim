@@ -12,9 +12,9 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-#include <stdio.h>
-#include <getopt.h>
-#import "CoreLocation/CoreLocation.h"
+#import <stdio.h>
+#import <getopt.h>
+#import <CoreLocation/CoreLocation.h>
 #import "PrivateHeaders.h"
 
 #define HELP_OPT 900

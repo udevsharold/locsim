@@ -16,7 +16,7 @@ OPTIONS:
 	-a, --altitude <double>: location altitude
 	-h, --haccuracy <double>: radius of uncertainty for the geographical coordinate, measured in meters
 	-v, --vaccuracy <double>: accuracy of the altitude value, measured in meters
-	-s, --speed: speed, or  average speed if -r specified, measured in m/s
+	-s, --speed: speed, or  override average speed if -g specified, measured in m/s
 	-t, --time <double>: epoch time to associate with the location
 	-f, --force: force stop simulation
 	--help: show this help

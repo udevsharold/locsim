@@ -330,7 +330,7 @@ static void print_help(){
 			"	-a, --altitude <double>: location altitude\n"
 			"	-h, --haccuracy <double>: radius of uncertainty for the geographical coordinate, measured in meters\n"
 			"	-v, --vaccuracy <double>: accuracy of the altitude value, measured in meters\n"
-			"	-s, --speed: speed, or  average speed if -r specified, measured in m/s\n"
+			"	-s, --speed: speed, or override average speed if -g specified, measured in m/s\n"
 			"	-t, --time <double>: epoch time to associate with the location\n"
 			"	-f, --force: force stop simulation\n"
 			"	--help: show this help\n"

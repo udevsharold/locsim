@@ -18,4 +18,11 @@
 -(void)stopLocationSimulation;
 -(void)appendSimulatedLocation:(id)arg1 ;
 -(void)flush;
+-(void)loadScenarioFromURL:(id)arg1 ;
+-(void)setSimulatedWifiPower:(BOOL)arg1 ;
+-(void)startWifiSimulation;
+-(void)stopWifiSimulation;
+-(void)setSimulatedCell:(id)arg1 ;
+-(void)startCellSimulation;
+-(void)stopCellSimulation;
 @end

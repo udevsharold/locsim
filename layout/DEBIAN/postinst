@@ -1,0 +1,7 @@
+#!/bin/bash
+
+echo "Killing locationd..."
+
+killall -9 locationd || true
+
+exit 0

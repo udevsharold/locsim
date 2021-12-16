@@ -14,16 +14,32 @@
 
 #import <stdio.h>
 #import <getopt.h>
+#import <libgen.h>
+#import <string.h>
+#import <stdlib.h>
+#import <spawn.h>
 #import <CoreLocation/CoreLocation.h>
+#import "LSMGPXParser.h"
 #import "PrivateHeaders.h"
 
 #define HELP_OPT 900
+#define PLIST_OPT 500
+#define EXPORTEDPLIST_OPT 501
 
 static void start_loc_sim(CLLocation *loc){
 	CLSimulationManager *simManager = [[CLSimulationManager  alloc] init];
 	[simManager stopLocationSimulation];
 	[simManager clearSimulatedLocations];
 	[simManager appendSimulatedLocation:loc];
+	[simManager flush];
+	[simManager startLocationSimulation];
+}
+
+static void start_scenario_sim(NSString *path){
+	CLSimulationManager *simManager = [[CLSimulationManager  alloc] init];
+	[simManager stopLocationSimulation];
+	[simManager clearSimulatedLocations];
+	[simManager loadScenarioFromURL:[NSURL fileURLWithPath:path]];
 	[simManager flush];
 	[simManager startLocationSimulation];
 }
@@ -314,8 +330,18 @@ static void print_help(){
 			"	-a, --altitude <double>: location altitude\n"
 			"	-h, --haccuracy <double>: radius of uncertainty for the geographical coordinate, measured in meters\n"
 			"	-v, --vaccuracy <double>: accuracy of the altitude value, measured in meters\n"
+			"	-s, --speed: speed, or  average speed if -r specified\n"
 			"	-t, --time <double>: epoch time to associate with the location\n"
+			"	-f, --force: force stop simulation\n"
 			"	--help: show this help\n"
+			"ADDITIONAL GPX OPTIONS:\n"
+			"	-g, --gpx: gpx file path\n"
+			"	    --plist: load exported plist file path instead\n"
+			"	-l, --lifespan: lifespan\n"
+			"	-p, --type: type\n"
+			"	-d, --delivery: location delivery behaviour\n"
+			"	-r, --repeat: location repeat behaviour\n"
+			"	--exportplist: export converted gpx file to plist\n"
 			);
 	exit(-1);
 }
@@ -329,6 +355,15 @@ int main(int argc, char *argv[], char *envp[]) {
 		{ "haccuracy", required_argument, 0, 'h' },
 		{ "vaccuracy", required_argument, 0, 'v' },
 		{ "time", required_argument, 0, 't' },
+		{ "force", required_argument, 0, 'f' },
+		{ "gpx", required_argument, 0, 'g' },
+		{ "speed", required_argument, 0, 's' },
+		{ "lifespan", required_argument, 0, 'l' },
+		{ "type", required_argument, 0, 'p' },
+		{ "delivery", required_argument, 0, 'd' },
+		{ "repeat", required_argument, 0, 'r' },
+		{ "plist", required_argument, 0, PLIST_OPT },
+		{ "exportplist", required_argument, 0, EXPORTEDPLIST_OPT },
 		{ "help", no_argument, 0, HELP_OPT},
 		{ 0, 0, 0, 0 }
 	};
@@ -338,9 +373,20 @@ int main(int argc, char *argv[], char *envp[]) {
 	CLLocationAccuracy ha = 0.0;
 	CLLocationAccuracy va = 0.0;
 	NSDate *ts = [NSDate date];
+	double s = -1.0;
+	BOOL force = NO;
+	
+	//gpx
+	NSString *gpx;
+	double l = -1.0;
+	int p = -1;
+	int ldb = -1;
+	int lrb = -1;
+	NSString *plist;
+	NSString *exportPlist;
 	
 	int opt;
-	while ((opt = getopt_long(argc, argv, "x:y:a:h:v:t:", longopts, NULL)) != -1){
+	while ((opt = getopt_long(argc, argv, "x:y:a:h:v:t:fg:s:l:p:d:r:", longopts, NULL)) != -1){
 		switch (opt){
 			case 'x':
 				coor.latitude = [@(optarg) doubleValue];
@@ -360,6 +406,33 @@ int main(int argc, char *argv[], char *envp[]) {
 			case 't':
 				ts = [NSDate dateWithTimeIntervalSince1970:[@(optarg) doubleValue]];
 				break;
+			case 'f':
+				force = YES;
+				break;
+			case 'g':
+				gpx = @(optarg);
+				break;
+			case 's':
+				s = [@(optarg) doubleValue];
+				break;
+			case 'l':
+				s = [@(optarg) doubleValue];
+				break;
+			case 'p':
+				p = [@(optarg) intValue];
+				break;
+			case 'd':
+				ldb = [@(optarg) intValue];
+				break;
+			case 'r':
+				lrb = [@(optarg) intValue];
+				break;
+			case EXPORTEDPLIST_OPT:
+				exportPlist = @(optarg);
+				break;
+			case PLIST_OPT:
+				plist = @(optarg);
+				break;
 			default:
 				print_help();
 				break;
@@ -377,12 +450,52 @@ int main(int argc, char *argv[], char *envp[]) {
 	}
 	
 	if (strcasecmp(argv[0], "start") == 0){
-		if (!CLLocationCoordinate2DIsValid(coor)) {fprintf(stderr, "ERROR: Invalid coordinate!\n"); return 1;}
-		CLLocation *loc = [[CLLocation alloc] initWithCoordinate:coor altitude:alt horizontalAccuracy:ha verticalAccuracy:va timestamp:ts];
-		start_loc_sim(loc);
-		fprintf(stdout, "latitude: %f\nlongitude: %f\naltitude: %f\nhorizontal accuracy: %f\nverticalAccuracy: %f\ntimestamp: %s\n", coor.latitude, coor.longitude, alt, ha, va, [NSDateFormatter localizedStringFromDate:ts dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterFullStyle].UTF8String);
+		
+		if (plist.length > 0){
+			if (access(strdup(plist.UTF8String), F_OK) != 0) {printf("ERROR: %s does not exist!\n", plist.UTF8String); return 1;}
+			start_scenario_sim(plist);
+		}else if (gpx.length > 0){
+			if (access(strdup(gpx.UTF8String), F_OK) != 0) {printf("ERROR: %s does not exist!\n", gpx.UTF8String); return 1;}
+			
+			NSXMLParser *xmlParser = [[NSXMLParser alloc] initWithContentsOfURL:[NSURL fileURLWithPath:gpx]];
+			
+			LSMGPXParser *gpxParser = [LSMGPXParser new];
+			gpxParser.averageSpeed = s > 0 ? s : gpxParser.averageSpeed;
+			gpxParser.hAccuracy = ha > 0 ? ha : gpxParser.hAccuracy;
+			gpxParser.vAccuracy = va > 0 ? va : gpxParser.vAccuracy;
+			gpxParser.lifeSpan = l > 0 ? l : gpxParser.lifeSpan;
+			gpxParser.locationDeliveryBehavior =  ldb > 0 ? ldb : gpxParser.locationDeliveryBehavior;
+			gpxParser.locationRepeatBehavior =  lrb > 0 ? lrb : gpxParser.locationRepeatBehavior;
+			
+			[xmlParser setDelegate:gpxParser];
+			[xmlParser parse];
+			
+			NSString *uuid = [[NSUUID UUID] UUIDString];
+			NSString *output = [NSString stringWithFormat:@"/tmp/%@.plist", uuid];
+			if (exportPlist.length > 0){
+				if (access(strdup(dirname((char *)exportPlist.UTF8String)), W_OK) != 0) {printf("ERROR: %s file not writable, check permissions!\n", exportPlist.UTF8String); return 1;}
+				output = exportPlist;
+			}
+			[[gpxParser scenario] writeToFile:output atomically:NO];
+			start_scenario_sim(output);
+		}else{
+			if (!CLLocationCoordinate2DIsValid(coor)) {fprintf(stderr, "ERROR: Invalid coordinate!\n"); return 1;}
+			s = s > 0 ? s : 0.0;
+			CLLocation *loc = [[CLLocation alloc] initWithCoordinate:coor altitude:alt horizontalAccuracy:ha verticalAccuracy:va course:-1 speed:s timestamp:ts];
+			start_loc_sim(loc);
+			fprintf(stdout, "latitude: %f\nlongitude: %f\naltitude: %f\nhorizontal accuracy: %f\nvertical accuracy: %f\nspeed: %f\ntimestamp: %s\n", coor.latitude, coor.longitude, alt, ha, va, s, [NSDateFormatter localizedStringFromDate:ts dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterFullStyle].UTF8String);
+		}
+		
 	}else if (strcasecmp(argv[0], "stop") == 0){
-		stop_loc_sim();
+		if (force){
+			pid_t pid;
+			int status;
+			const char *args[] = {"killall", "-9", "locationd", NULL};
+			posix_spawn(&pid, "/usr/bin/killall", NULL, NULL, (char * const *)args, NULL);
+			waitpid(pid, &status, WEXITED);
+		}else{
+			stop_loc_sim();
+		}
 	}else{
 		print_help();
 	}

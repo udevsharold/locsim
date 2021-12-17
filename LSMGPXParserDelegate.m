@@ -13,9 +13,9 @@
 //    along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #import <CoreLocation/CoreLocation.h>
-#import "LSMGPXParser.h"
+#import "LSMGPXParserDelegate.h"
 
-@implementation LSMGPXParser
+@implementation LSMGPXParserDelegate
 
 -(instancetype)init{
 	if (self = [super init]){
@@ -109,8 +109,12 @@
 		
 		CLLocation *loc = [[CLLocation alloc] initWithLatitude:lat longitude:lon];
 		
-		if (i > 0 && i < totalTracksCount - 1){
-			
+		
+		double prevSpeed = 0.0;
+		double nextSpeed = 0.0;
+		int avg = 0;
+		
+		if (i > 0){
 			NSDictionary *prevTrack = self.tracks[i - 1];
 			double prevLat = [prevTrack[@"lat"] doubleValue];
 			double prevLon = [prevTrack[@"lon"] doubleValue];
@@ -118,8 +122,11 @@
 			
 			CLLocation *prevLoc = [[CLLocation alloc] initWithLatitude:prevLat longitude:prevLon];
 			CLLocationDistance prevDistance = [loc distanceFromLocation:prevLoc];
-			double prevSpeed = prevDistance / (time - prevTime);
-			
+			prevSpeed = prevDistance / (time - prevTime);
+			avg++;
+		}
+		
+		if (i < totalTracksCount - 1){
 			NSDictionary *nextTrack = self.tracks[i + 1];
 			double nextLat = [nextTrack[@"lat"] doubleValue];
 			double nextLon = [nextTrack[@"lon"] doubleValue];
@@ -127,19 +134,20 @@
 			
 			CLLocation *nextLoc = [[CLLocation alloc] initWithLatitude:nextLat longitude:nextLon];
 			CLLocationDistance nextDistance = [loc distanceFromLocation:nextLoc];
-			double nextSpeed = nextDistance / (nextTime - time);
-			
-			speed = self.averageSpeed > 0 ? self.averageSpeed : (prevSpeed + nextSpeed) / 2.0;
+			nextSpeed = nextDistance / (nextTime - time);
+			avg++;
 			
 			double y = (sin(DEG2RAD(nextLon) - DEG2RAD(lon))) * cos(DEG2RAD(nextLat));
 			double x = (cos(DEG2RAD(lat)) * sin(DEG2RAD(nextLat))) - (sin(DEG2RAD(lat))*cos(DEG2RAD(nextLat)) * cos(DEG2RAD(nextLon) - DEG2RAD(lon)));
 			course = fmod(RAD2DEG(atan2(y, x)) + 360, 360.0);
 			lastCourse = course;
-			
-		}else if (i == totalTracksCount - 1){
-			course = lastCourse;
 		}
 		
+		speed = self.averageSpeed > 0 ? self.averageSpeed : (prevSpeed + nextSpeed) / (double)avg;
+		
+		if (i == totalTracksCount - 1){
+			course = lastCourse;
+		}
 		
 		//+[NSKeyedArchiver archivedDataWithRootObject:requiringSecureCoding:error:] of CLLocation doesn't seems to work
 		//Reference: https://bottleofcode.com/posts/custom-gps-data-in-the-ios-simulator/

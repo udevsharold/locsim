@@ -16,18 +16,22 @@ OPTIONS:
 	-a, --altitude <double>: location altitude
 	-h, --haccuracy <double>: radius of uncertainty for the geographical coordinate, measured in meters
 	-v, --vaccuracy <double>: accuracy of the altitude value, measured in meters
-	-s, --speed: speed, or  override average speed if -g specified, measured in m/s
+	-s, --speed <double>: speed, or  override average speed if -g specified, measured in m/s
+	    --saccuracy <double>: accuracy of the speed value, measured in m/s	
+	-c, --course <double>: direction values measured in degrees
+	    --caccuracy <double>: accuracy of the course value, measured in degress	
 	-t, --time <double>: epoch time to associate with the location
-	-f, --force: force stop simulation
+	-f, --force: force stop simulation, requires root access
 	--help: show this help
 ADDITIONAL GPX OPTIONS:
-	-g, --gpx: gpx file path
-	    --plist: load exported plist file path instead
-	-l, --lifespan: lifespan
-	-p, --type: type
-	-d, --delivery: location delivery behaviour
-	-r, --repeat: location repeat behaviour
-	--exportplist: export converted gpx file to plist
+	-g, --gpx <file>: gpx file path
+	    --plist <file>: exported or valid plist file path
+	-l, --lifespan <double>: lifespan
+	-p, --type <int>: type
+	-d, --delivery <int>: location delivery behaviour
+	-r, --repeat <int>: location repeat behaviour
+	--export-plist <file>: export converted gpx file to plist
+	--export-only: export converted gpx file to plist without running simulation	
 ```
 
 
@@ -35,10 +39,11 @@ ADDITIONAL GPX OPTIONS:
 This package tested to be working on iOS 14.3. Might or might not work on other iOS version.
 
 ## Bonus
-This [Shortcut](https://www.dropbox.com/s/4kpjwbnbd7gwtu5/Simulates%20Location.shortcut?dl=0) allow you to pick any location on Maps.app and simulate it (requires localhost ssh and change port and password accordingly).
+- This [Shortcut](https://www.dropbox.com/s/4kpjwbnbd7gwtu5/Simulates%20Location.shortcut?dl=0) allow you to pick any location on Maps.app and simulate it (requires localhost ssh, change port and password accordingly).
+- Convert any route to gpx using this [online tool](https://mapstogpx.com/)
 
 ## References
-- Hines, L. (2014, October 18). Custom GPS data in the IOS simulator. Custom GPS data in the iOS simulator. Retrieved December 15 2021, from https://bottleofcode.com/posts/custom-gps-data-in-the-ios-simulator/
+- Hines, L. (2014, October 18). Custom GPS data in the IOS simulator. Luke Hines : Bottle of Code. Retrieved December 15 2021, from https://bottleofcode.com/posts/custom-gps-data-in-the-ios-simulator/
 ## License
 All source code in this repository are licensed under GPLv3, unless stated otherwise.
 

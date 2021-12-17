@@ -12,7 +12,7 @@
 //    You should have received a copy of the GNU General Public License
 //    along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-@interface LSMGPXParser : NSObject <NSXMLParserDelegate>{
+@interface LSMGPXParserDelegate : NSObject <NSXMLParserDelegate>{
 	NSMutableDictionary *_processingElement;
 	NSDictionary *_lastProcessingElement;
 	NSMutableArray *_processingTracks;

@@ -500,7 +500,7 @@ int main(int argc, char *argv[], char *envp[]) {
 					plist = plistExt;
 				}
 			}
-			if (![plist.pathExtension isEqualToString:@"plist"]) {fprintf(stderr, "ERROR: %s is not a plist file, file must end with .plist extension!\n", gpx.UTF8String); return 3;}
+			if (![plist.pathExtension isEqualToString:@"plist"]) {fprintf(stderr, "ERROR: %s is not a plist file, file must end with .plist extension!\n", plist.UTF8String); return 3;}
 			start_scenario_sim(plist);
 		}else if (gpx.length > 0){
 			if (access(strdup(gpx.UTF8String), F_OK) != 0) {fprintf(stderr, "ERROR: %s does not exist!\n", gpx.UTF8String); return 2;}

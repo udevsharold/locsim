@@ -14,6 +14,7 @@
 
 #import <CoreLocation/CoreLocation.h>
 #import "LSMGPXParserDelegate.h"
+#import "macros.h"
 
 @implementation LSMGPXParserDelegate
 
@@ -92,7 +93,7 @@
 
 -(NSArray <NSData *>*)encodedTracks{
 	NSMutableArray *encodedTracks = [NSMutableArray array];
-	NSString *archivedCLLocBase = [NSString stringWithContentsOfFile:@"/Library/Application Support/locsim/archived_cllocation_base" encoding:NSUTF8StringEncoding error:nil];
+	NSString *archivedCLLocBase = ENCODED_CLLOCATION_BASE;
 	NSUInteger totalTracksCount = self.tracks.count;
 	
 	double lastCourse = 0.0;
@@ -138,7 +139,7 @@
 			avg++;
 			
 			double y = (sin(DEG2RAD(nextLon) - DEG2RAD(lon))) * cos(DEG2RAD(nextLat));
-			double x = (cos(DEG2RAD(lat)) * sin(DEG2RAD(nextLat))) - (sin(DEG2RAD(lat))*cos(DEG2RAD(nextLat)) * cos(DEG2RAD(nextLon) - DEG2RAD(lon)));
+			double x = (cos(DEG2RAD(lat)) * sin(DEG2RAD(nextLat))) - (sin(DEG2RAD(lat)) * cos(DEG2RAD(nextLat)) * cos(DEG2RAD(nextLon) - DEG2RAD(lon)));
 			course = fmod(RAD2DEG(atan2(y, x)) + 360, 360.0);
 			lastCourse = course;
 		}

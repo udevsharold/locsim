@@ -1,6 +1,6 @@
 Package: com.udevs.locsim
 Name: locsim
-Version: 1.1.5
+Version: 1.1.6
 Architecture: iphoneos-arm
 Description: Simulate GPS location system-wide
 Maintainer: udevs

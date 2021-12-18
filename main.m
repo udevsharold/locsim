@@ -213,11 +213,11 @@ int main(int argc, char *argv[], char *envp[]) {
 				break;
 			case SPEED_ACCURACY_OPT:
 				sa = [@(optarg) doubleValue];
-				if (@available(iOS 14.4, *)); else WARNING("WARNING: --saccuracy not available, flag ignored\n");
+				if (@available(iOS 13.4, *)); else WARNING("WARNING: --saccuracy not available, flag ignored\n");
 				break;
 			case COURSE_ACCURACY_OPT:
 				ca = [@(optarg) doubleValue];
-				if (@available(iOS 14.4, *)); else WARNING("WARNING: --aaccuracy not available, flag ignored\n");
+				if (@available(iOS 13.4, *)); else WARNING("WARNING: --aaccuracy not available, flag ignored\n");
 				break;
 			default:
 				print_help();

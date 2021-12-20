@@ -37,8 +37,10 @@ static void post_required_timezone_update(){
 	CFNotificationCenterPostNotificationWithOptions(CFNotificationCenterGetDarwinNotifyCenter(), CFSTR("AutomaticTimeZoneUpdateNeeded"), NULL, NULL, kCFNotificationDeliverImmediately);
 }
 
-static void start_loc_sim(CLLocation *loc){
+static void start_loc_sim(CLLocation *loc, int delivery, int repeat){
 	CLSimulationManager *simManager = [[CLSimulationManager  alloc] init];
+	if (delivery >= 0) simManager.locationDeliveryBehavior = (uint8_t)delivery;
+	if (repeat >= 0) simManager.locationRepeatBehavior = (uint8_t)repeat;
 	[simManager stopLocationSimulation];
 	[simManager clearSimulatedLocations];
 	[simManager appendSimulatedLocation:loc];
@@ -47,8 +49,10 @@ static void start_loc_sim(CLLocation *loc){
 	post_required_timezone_update();
 }
 
-static void start_scenario_sim(NSString *path){
+static void start_scenario_sim(NSString *path, int delivery, int repeat){
 	CLSimulationManager *simManager = [[CLSimulationManager  alloc] init];
+	if (delivery >= 0) simManager.locationDeliveryBehavior = (uint8_t)delivery;
+	if (repeat >= 0) simManager.locationRepeatBehavior = (uint8_t)repeat;
 	[simManager stopLocationSimulation];
 	[simManager clearSimulatedLocations];
 	[simManager loadScenarioFromURL:[NSURL fileURLWithPath:path]];
@@ -80,33 +84,38 @@ static CLLocationCoordinate2D rand_world_capital_coor(){
 
 static void print_help(){
 	PRINT("Usage: locsim <SUBCOMMAND> [LATITUDE] [LONGITUDE] [OPTIONS]\n"
-			"if LATITUDE and LONGITUDE not specified, random values will be generated\n\n"
-			"SUBCOMMAND:\n"
-			"	start	start location simulation\n"
-			"	stop	stop location simulation\n"
-			"OPTIONS:\n"
-			"	-x, --latitude <double>: latitude of geographical coordinate\n"
-			"	-y, --longitude <double>: longitude of geographical coordinate\n"
-			"	-a, --altitude <double>: location altitude\n"
-			"	-h, --haccuracy <double>: radius of uncertainty for the geographical coordinate, measured in meters\n"
-			"	-v, --vaccuracy <double>: accuracy of the altitude value, measured in meters\n"
-			"	-s, --speed <double>: speed, or override average speed if -g specified, measured in m/s\n"
-			"	    --saccuracy <double>: accuracy of the speed value, measured in m/s\n"
-			"	-c, --course <double>: direction values measured in degrees\n"
-			"	    --caccuracy <double>: accuracy of the course value, measured in degress\n"
-			"	-t, --time <double>: epoch time to associate with the location\n"
-			"	-f, --force: force stop simulation, requires root access\n"
-			"	--help: show this help\n"
-			"ADDITIONAL GPX OPTIONS:\n"
-			"	-g, --gpx <file>: gpx file path\n"
-			"	    --plist <file>: exported or valid plist file path\n"
-			"	-l, --lifespan <double>: lifespan\n"
-			"	-p, --type <int>: type\n"
-			"	-d, --delivery <int>: location delivery behaviour\n"
-			"	-r, --repeat <int>: location repeat behaviour\n"
-			"	--export-plist <file>: export converted gpx file to plist\n"
-			"	--export-only: export converted gpx file to plist without running simulation\n"
-			);
+		  "if LATITUDE and LONGITUDE not specified, random values will be generated\n\n"
+		  "SUBCOMMAND:\n"
+		  "	start	start location simulation\n"
+		  "	stop	stop location simulation\n"
+		  "OPTIONS:\n"
+		  "	-x, --latitude <double>: latitude of geographical coordinate\n"
+		  "	-y, --longitude <double>: longitude of geographical coordinate\n"
+		  "	-a, --altitude <double>: location altitude\n"
+		  "	-h, --haccuracy <double>: radius of uncertainty for the geographical coordinate, measured in meters\n"
+		  "	-v, --vaccuracy <double>: accuracy of the altitude value, measured in meters\n"
+		  "	-s, --speed <double>: speed, or override average speed if -g specified, measured in m/s\n"
+		  "	    --saccuracy <double>: accuracy of the speed value, measured in m/s\n"
+		  "	-c, --course <double>: direction values measured in degrees\n"
+		  "	    --caccuracy <double>: accuracy of the course value, measured in degress\n"
+		  "	-t, --time <double>: epoch time to associate with the location\n"
+		  "	-f, --force: force stop simulation, requires root access\n"
+		  "	-d, --delivery <int>: location delivery behaviour\n"
+		  "		0 = pass through\n"
+		  "		1 = consider other factors\n"
+		  "	-r, --repeat <int>: location repeat behaviour\n"
+		  "		0 = unavailable\n"
+		  "		1 = last location/entry\n"
+		  "		2 = loop (valid if -g, --gpx specified)\n"
+		  "	--help: show this help\n"
+		  "ADDITIONAL GPX OPTIONS:\n"
+		  "	-g, --gpx <file>: gpx file path\n"
+		  "	    --plist <file>: exported or valid plist file path\n"
+		  "	-l, --lifespan <double>: location lifespan, send unavailable once expired\n"
+		  "	-p, --type <int>: type\n"
+		  "	--export-plist <file>: export converted gpx file to plist\n"
+		  "	--export-only: export converted gpx file to plist without running simulation\n"
+		  );
 	exit(-1);
 }
 
@@ -144,6 +153,8 @@ int main(int argc, char *argv[], char *envp[]) {
 	double s = -1.0;
 	double c = -1.0;
 	BOOL force = NO;
+	int ldb = -1;
+	int lrb = -1;
 	
 	//gpx
 	NSString *gpx;
@@ -151,8 +162,6 @@ int main(int argc, char *argv[], char *envp[]) {
 	double sa = -1.0;
 	double ca = -1.0;
 	int p = -1;
-	int ldb = -1;
-	int lrb = -1;
 	NSString *plist;
 	NSString *exportPlist;
 	BOOL exportOnly = NO;
@@ -217,7 +226,7 @@ int main(int argc, char *argv[], char *envp[]) {
 				break;
 			case COURSE_ACCURACY_OPT:
 				ca = [@(optarg) doubleValue];
-				if (@available(iOS 13.4, *)); else WARNING("WARNING: --aaccuracy not available, flag ignored\n");
+				if (@available(iOS 13.4, *)); else WARNING("WARNING: --caccuracy not available, flag ignored\n");
 				break;
 			default:
 				print_help();
@@ -249,7 +258,12 @@ int main(int argc, char *argv[], char *envp[]) {
 				}
 			}
 			if (![plist.pathExtension isEqualToString:@"plist"]) {ERROR("ERROR: \"%s\" is not a plist file, file must end with .plist extension!\n", plist.UTF8String); return 3;}
-			start_scenario_sim(plist);
+			NSDictionary *options = [NSDictionary dictionaryWithContentsOfFile:plist][@"Options"];
+			if (options){
+				ldb = [options[@"LocationDeliveryBehavior"] ?: @(ldb) intValue];
+				lrb = [options[@"LocationRepeatBehavior"] ?: @(lrb) intValue];
+			}
+			start_scenario_sim(plist, ldb, lrb);
 		}else if (gpx.length > 0){
 			if (access(strdup(gpx.UTF8String), F_OK) != 0) {ERROR("ERROR: \"%s\" does not exist!\n", gpx.UTF8String); return 2;}
 			
@@ -260,8 +274,8 @@ int main(int argc, char *argv[], char *envp[]) {
 			gpxParserDelegate.hAccuracy = ha > 0 ? ha : gpxParserDelegate.hAccuracy;
 			gpxParserDelegate.vAccuracy = va > 0 ? va : gpxParserDelegate.vAccuracy;
 			gpxParserDelegate.lifeSpan = l > 0 ? l : gpxParserDelegate.lifeSpan;
-			gpxParserDelegate.locationDeliveryBehavior =  ldb > 0 ? ldb : gpxParserDelegate.locationDeliveryBehavior;
-			gpxParserDelegate.locationRepeatBehavior =  lrb > 0 ? lrb : gpxParserDelegate.locationRepeatBehavior;
+			gpxParserDelegate.locationDeliveryBehavior =  ldb >= 0 ? ldb : gpxParserDelegate.locationDeliveryBehavior;
+			gpxParserDelegate.locationRepeatBehavior =  lrb >= 0 ? lrb : gpxParserDelegate.locationRepeatBehavior;
 			
 			[xmlParser setDelegate:gpxParserDelegate];
 			[xmlParser parse];
@@ -274,7 +288,7 @@ int main(int argc, char *argv[], char *envp[]) {
 			}
 			[[gpxParserDelegate scenario] writeToFile:output atomically:NO];
 			if (exportPlist.length > 0) {PRINT("Exported to \"%s\"\n", output.UTF8String);}
-			if (!exportOnly) start_scenario_sim(output);
+			if (!exportOnly) start_scenario_sim(output, ldb, lrb);
 		}else{
 			if (!CLLocationCoordinate2DIsValid(coor)) {ERROR("ERROR: Invalid coordinate!\n"); return 1;}
 			s = s > 0 ? s : 0.0;
@@ -284,7 +298,7 @@ int main(int argc, char *argv[], char *envp[]) {
 			}else{
 				loc = [[CLLocation alloc] initWithCoordinate:coor altitude:alt horizontalAccuracy:ha verticalAccuracy:va course:c speed:s timestamp:ts];
 			}
-			start_loc_sim(loc);
+			start_loc_sim(loc, ldb, lrb);
 			PRINT("latitude: %f\nlongitude: %f\naltitude: %f\nhorizontal accuracy: %f\nvertical accuracy: %f\nspeed: %f\nspeed accuracy: %f\ncourse: %f\ncourse accuracy: %f\ntimestamp: %s\n", coor.latitude, coor.longitude, alt, ha, va, s, sa, c, ca, [NSDateFormatter localizedStringFromDate:ts dateStyle:NSDateFormatterShortStyle timeStyle:NSDateFormatterFullStyle].UTF8String);
 		}
 	}else if (strcasecmp(argv[0], "stop") == 0){

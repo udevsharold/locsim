@@ -27,7 +27,6 @@
 		self.averageSpeed = 0.0;
 		self.locationDeliveryBehavior = 2;
 		self.locationRepeatBehavior = 0;
-		
 	}
 	return self;
 }

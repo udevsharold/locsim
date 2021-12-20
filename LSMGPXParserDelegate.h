@@ -25,8 +25,8 @@
 @property(nonatomic, assign) double lifeSpan;
 @property(nonatomic, assign) int type;
 @property(nonatomic, assign) double averageSpeed;
-@property(nonatomic, assign) unsigned char locationDeliveryBehavior;
-@property(nonatomic, assign) unsigned char locationRepeatBehavior;
+@property(nonatomic, assign) uint8_t locationDeliveryBehavior;
+@property(nonatomic, assign) uint8_t locationRepeatBehavior;
 -(NSArray <NSData *>*)encodedTracks;
 -(NSDictionary *)scenario;
 @end

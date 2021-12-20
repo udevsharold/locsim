@@ -13,6 +13,11 @@
 //    along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 @interface CLSimulationManager : NSObject
+@property (assign,nonatomic) uint8_t locationDeliveryBehavior;
+@property (assign,nonatomic) double locationDistance;
+@property (assign,nonatomic) double locationInterval;
+@property (assign,nonatomic) double locationSpeed;
+@property (assign,nonatomic) uint8_t locationRepeatBehavior;
 -(void)clearSimulatedLocations;
 -(void)startLocationSimulation;
 -(void)stopLocationSimulation;

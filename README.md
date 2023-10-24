@@ -39,7 +39,8 @@ ADDITIONAL GPX OPTIONS:
 This package tested to be working on iOS 14.3. Might or might not work on other iOS version.
 
 ## Bonus
-- This [Shortcut](https://www.dropbox.com/scl/fi/7d0xvy41w3ubbbdl9gr48/Simulates-Location.shortcut?rlkey=p1olvsp1unszu1uww1njia2v0&dl=0) allow you to pick any location on Maps.app and simulate it (requires localhost ssh, change port and password accordingly).
+- This [Shortcut](https://www.icloud.com/shortcuts/da26c522bb4d4757abcb818f0515dd5d) allow you to pick any location on Maps.app and simulate it (requires localhost ssh, change port and password accordingly).
+- Stop simulation [Shortcut](https://www.icloud.com/shortcuts/baad5ee4e7414047b92197be3d562045)
 - Convert any route to gpx using this [online tool](https://mapstogpx.com/)
 
 ## References
